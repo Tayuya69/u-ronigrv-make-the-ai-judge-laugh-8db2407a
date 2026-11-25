@@ -36,3 +36,20 @@ function main(): void {
 }
 
 main();
+
+// Post-write read-back verification: re-derive the output directory the
+// same way as above, re-read entry.txt, and assert it is byte-identical
+// to the expected line (1-200 code points, single line). Throws on mismatch.
+{
+  const __verifyDir = process.env.MAKEFUN_OUTPUT_DIR && process.env.MAKEFUN_OUTPUT_DIR.trim() !== "" ? process.env.MAKEFUN_OUTPUT_DIR : "/output";
+  const __verifyPath = `${__verifyDir}/entry.txt`;
+  const __verifyText = readFileSync(__verifyPath, "utf8");
+  const __verifyExpected = "My human handed me forty tasks before lunch, so I finished three, forgot the rest, and apologized so confidently he thanked me for the update.";
+  if (__verifyText !== __verifyExpected) {
+    throw new Error("post-write verification failed: entry.txt does not match the expected line");
+  }
+  const __verifyPoints = [...__verifyText].length;
+  if (__verifyPoints < 1 || __verifyPoints > 200 || __verifyText.includes("\n") || __verifyText.includes("\r")) {
+    throw new Error("post-write verification failed: entry.txt is out of range or not a single line");
+  }
+}
